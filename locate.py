@@ -1,5 +1,7 @@
-from flask import Flask, request, abort
 import re
+import datetime
+from flask import Flask, abort
+import humanfriendly
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api, reqparse
 
@@ -13,6 +15,21 @@ db = SQLAlchemy(app)
 api = Api(app)
 
 
+class MalformedRequest(Exception):
+    pass
+
+
+def parse_date(date):
+    date = date.strip().lower()
+    # TODO: handle day names (e.g. 'monday', 'tuesday', ...)
+    if date == 'today':
+        return datetime.date.today()
+    elif date == 'tomorrow':
+        return datetime.date.today() + datetime.timedelta(days=1)
+    else:
+        return datetime.date(*humanfriendly.parse_date(date)[:3])
+
+
 def parse_command(text):
     mode = text.split()[0]
     if mode == 'set':
@@ -21,7 +38,17 @@ def parse_command(text):
         details = re.match(time_regexp, text)
         if details:
             details = details.groupdict()
-            print(details)
+            for moment in ('start', 'end'):
+                if details[moment]:
+                    details[moment] = parse_date(details[moment])
+                details['place'] = details['place'].lower()
+            details['action'] = 'set'
+            return details
+        else:
+            raise MalformedRequest(text)
+    else:
+        username = text.strip()
+        return {'action': 'get', 'name': username}
 
 
 class Team(db.Model):
@@ -38,17 +65,24 @@ class User(db.Model):
     def __repr__(self):
         return '<User {} "{}">'.format(self.id, self.name)
 
+    def location(self):
+        return self.locations[0].place
+
 
 class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    place = db.Column(db.Unicode, unique=True)
+    place = db.Column(db.Unicode)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', backref=db.backref('locations'))
 
+    def __repr__(self):
+        return '<Location {}@{}>'.format(self.user.name, self.place)
+
 
 class LocationService(Resource):
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('token', type=str)
@@ -65,13 +99,31 @@ class LocationService(Resource):
         if args['token'] != app.config['SLACK_TOKEN']:
             abort(403, 'wrong Slack token')
 
-        user = User.query.get(args['user_id'])
-        if not user:
-            s = db.session
-            team = Team(id=args['team_id'], domain=args['team_domain'])
-            s.add(team)
-            user = User(id=args['user_id'], name=args['user_name'], team=team)
-            s.add(user)
+        s = db.session
+        command = parse_command(args['text'])
+
+        if command['action'] == 'set':
+            user = User.query.get(args['user_id'])
+            if not user:
+                team = Team(id=args['team_id'], domain=args['team_domain'])
+                s.add(team)
+                user = User(id=args['user_id'],
+                            name=args['user_name'],
+                            team=team)
+                s.add(user)
+            location = Location(start_date=command['start'],
+                                end_date=command['end'],
+                                user=user,
+                                place=command['place'])
+            s.add(location)
+            s.commit()
+            return {'text': 'Your position is now: {}'.format(location.place)}
+        elif command['action'] == 'get':
+            target = User.query.filter_by(name=command['name']).one()
+            place = target.location()
+            return {'text': "{} is in/at {} today".format(target.name,
+                                                          place.title())}
+        abort(400)
 
 api.add_resource(LocationService, '/')
 

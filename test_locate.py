@@ -1,5 +1,10 @@
-from locate import app, db
+from locate import app, db, parse_date, parse_command
 from pytest import fixture
+import datetime
+import json
+
+TODAY = datetime.date.today()
+TOMORROW = datetime.date.today() + datetime.timedelta(days=1)
 
 
 @fixture(scope='function')
@@ -22,11 +27,49 @@ def payload():
             'user_id': 'U2147483697',
             'user_name': 'Steve',
             'command': '/locate',
-            'text': '94070',
             'response_url': 'https://hooks.slack.com/commands/1234/5678'}
 
 
 def test_post_location_simple(client, payload):
-    payload['text'] = 'Paris'
+    payload['text'] = 'set Paris'
     r = client.post('/', data=payload)
     assert r.status_code == 200
+
+
+def test_locate_friend(client, payload):
+    payload['text'] = 'set Paris'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+
+    payload['text'] = 'Steve'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+    expect = {'text': 'Steve is in/at Paris today'}
+    assert json.loads(r.data.decode('utf-8')) == expect 
+
+
+def test_parse_date():
+    assert parse_date('today') == TODAY
+    assert parse_date('tomorrow') == TOMORROW
+    assert parse_date('2016-01-18') == datetime.date(2016, 1, 18)
+
+
+def test_parse_command_full():
+    parsed = parse_command('set Paris today to tomorrow')
+    assert parsed['place'] == 'paris'
+    assert parsed['start'] == TODAY
+    assert parsed['end'] == TOMORROW
+
+
+def test_parse_command_place_only():
+    parsed = parse_command('set Paris ')
+    assert parsed['place'] == 'paris'
+    assert parsed['start'] is None
+    assert parsed['end'] is None
+
+
+def test_parse_command_start():
+    parsed = parse_command('set Paris tomorrow')
+    assert parsed['place'] == 'paris'
+    assert parsed['start'] == TOMORROW
+    assert parsed['end'] is None
