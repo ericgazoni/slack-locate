@@ -139,6 +139,8 @@ class LocationService(Resource):
 
 api.add_resource(LocationService, '/')
 
-if __name__ == '__main__':
+if not app.config['TESTING']:
     db.create_all()
+
+if __name__ == '__main__':
     app.run()
