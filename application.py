@@ -96,15 +96,13 @@ class Location(db.Model):
 class LocationService(Resource):
 
     def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('token', type=str)
-        parser.add_argument('user_id', type=str)
-        parser.add_argument('user_name', type=str)
-
-        parser.add_argument('team_id', type=str)
-        parser.add_argument('team_domain', type=str)
-
-        parser.add_argument('text', type=str)
+        parser = reqparse.RequestParser(bundle_errors=True)
+        parser.add_argument('token', type=str, required=True)
+        parser.add_argument('user_id', type=str, required=True)
+        parser.add_argument('user_name', type=str, required=True)
+        parser.add_argument('team_id', type=str, required=True)
+        parser.add_argument('team_domain', type=str, required=True)
+        parser.add_argument('text', type=str, required=True)
 
         args = parser.parse_args()
 
