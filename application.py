@@ -1,4 +1,5 @@
 import re
+import os
 import datetime
 from flask import Flask, abort
 import humanfriendly
@@ -7,10 +8,20 @@ from flask_restful import Resource, Api, reqparse
 
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = os.environ.get('APP_DEBUG', False)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
-app.config['SLACK_TOKEN'] = ''
+
+if 'RDS_HOSTNAME' in os.environ:
+    db_creds = {'user': os.environ['RDS_USERNAME'],
+                'password': os.environ['RDS_PASSWORD'],
+                'host': os.environ['RDS_HOSTNAME'],
+                'port': os.environ['RDS_PORT'],
+                'database': os.environ['RDS_DB_NAME']}
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{user}:{password}@{host}:{port}/{database}'.format(**db_creds)
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+
+app.config['SLACK_TOKEN'] = os.environ.get('SLACK_TOKEN', '')
 db = SQLAlchemy(app)
 api = Api(app)
 
