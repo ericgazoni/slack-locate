@@ -5,9 +5,11 @@ from flask import Flask, abort
 import humanfriendly
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api, reqparse
+from raven.contrib.flask import Sentry
 
 
 app = Flask(__name__)
+sentry = Sentry(app)
 application = app  # noqa
 app.config['DEBUG'] = os.environ.get('APP_DEBUG', False)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
