@@ -66,14 +66,14 @@ def parse_command(text):
 
 
 class Team(db.Model):
-    id = db.Column(db.Unicode, primary_key=True)
-    domain = db.Column(db.Unicode)
+    id = db.Column(db.Unicode(64), primary_key=True)
+    domain = db.Column(db.Unicode(256))
 
 
 class User(db.Model):
-    id = db.Column(db.Unicode, primary_key=True)
-    name = db.Column(db.Unicode)
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    id = db.Column(db.Unicode(64), primary_key=True)
+    name = db.Column(db.Unicode(256))
+    team_id = db.Column(db.Unicode(64), db.ForeignKey('team.id'))
     team = db.relationship('Team', backref=db.backref('users'))
 
     def __repr__(self):
@@ -87,8 +87,8 @@ class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    place = db.Column(db.Unicode)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    place = db.Column(db.Unicode(256))
+    user_id = db.Column(db.Unicode(64), db.ForeignKey('user.id'))
     user = db.relationship('User', backref=db.backref('locations'))
 
     def __repr__(self):
