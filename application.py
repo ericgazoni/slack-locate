@@ -8,6 +8,7 @@ from flask_restful import Resource, Api, reqparse
 
 
 app = Flask(__name__)
+application = app  # noqa
 app.config['DEBUG'] = os.environ.get('APP_DEBUG', False)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
