@@ -20,7 +20,7 @@ if 'RDS_HOSTNAME' in os.environ:
                 'database': os.environ['RDS_DB_NAME']}
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{user}:{password}@{host}:{port}/{database}'.format(**db_creds)
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.expanduser('~/{}.db'.format('slack-locate'))
 
 app.config['SLACK_TOKEN'] = os.environ.get('SLACK_TOKEN', '')
 db = SQLAlchemy(app)
