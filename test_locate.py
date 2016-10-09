@@ -50,14 +50,14 @@ def test_locate_friend(client, payload):
     r = client.post('/', data=payload)
     assert r.status_code == 200
     message = json.loads(r.data.decode('utf-8'))
-    assert 'Steve' in message['text']
+    assert 'steve' in message['text']
     assert 'Paris' in message['text']
 
     payload['text'] = '@Steve'
     r = client.post('/', data=payload)
     assert r.status_code == 200
     message = json.loads(r.data.decode('utf-8'))
-    assert 'Steve' in message['text']
+    assert 'steve' in message['text']
     assert 'Paris' in message['text']
 
 
@@ -66,7 +66,7 @@ def test_locate_no_friend(client, payload):
     r = client.post('/', data=payload)
     assert r.status_code == 200
     message = json.loads(r.data.decode('utf-8'))
-    assert 'Steve' in message['text']
+    assert 'steve' in message['text']
     assert 'Paris' not in message['text'] 
 
 

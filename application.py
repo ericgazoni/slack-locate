@@ -62,7 +62,7 @@ def parse_command(text):
         else:
             raise MalformedRequest(text)
     else:
-        username = text.strip().lstrip('@')
+        username = text.strip().lstrip('@').lower()
         return {'action': 'get', 'name': username}
 
 
@@ -121,7 +121,7 @@ class LocationService(Resource):
                 team = Team(id=args['team_id'], domain=args['team_domain'])
                 s.add(team)
                 user = User(id=args['user_id'],
-                            name=args['user_name'],
+                            name=args['user_name'].lower(),
                             team=team)
                 s.add(user)
             location = Location(start_date=command['start'],
