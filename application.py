@@ -21,9 +21,11 @@ if 'RDS_HOSTNAME' in os.environ:
                 'host': os.environ['RDS_HOSTNAME'],
                 'port': os.environ['RDS_PORT'],
                 'database': os.environ['RDS_DB_NAME']}
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{user}:{password}@{host}:{port}/{database}'.format(**db_creds)
+    app.config[
+        'SQLALCHEMY_DATABASE_URI'] = 'mysql://{user}:{password}@{host}:{port}/{database}'.format(**db_creds)
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.expanduser('~/{}.db'.format('slack-locate'))
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
+        os.path.expanduser('~/{}.db'.format('slack-locate'))
 
 app.config['SLACK_TOKEN'] = os.environ.get('SLACK_TOKEN', '')
 db = SQLAlchemy(app)
@@ -135,7 +137,8 @@ class LocationService(Resource):
             return {'text': 'Your position is now: {}'.format(location.place)}
         elif command['action'] == 'get':
             try:
-                target = User.query.filter_by(name=command['name']).one()
+                target = User.query.filter_by(name=command['name'],
+                                              team_id=args['team_id']).one()
             except sqlalchemy.orm.exc.NoResultFound:
                 return {'text': 'Sorry, no known location for {}'.format(command['name'])}
             place = target.location()

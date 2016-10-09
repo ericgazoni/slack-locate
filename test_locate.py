@@ -53,6 +53,27 @@ def test_post_location_two_friends(client, payload):
     assert r.status_code == 200
 
 
+def test_post_location_same_name(client, payload):
+    payload['text'] = 'set Paris'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+
+    sec_payload = payload.copy()
+    sec_payload.update({'user_id': 'U2147',
+                        'team_id': 'T0002',
+                        'team_domain': 'anotherexample',
+                        'text': 'set Brussels'})
+    r = client.post('/', data=sec_payload)
+    assert r.status_code == 200
+
+    payload['text'] = 'Steve'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+    message = json.loads(r.data.decode('utf-8'))
+    assert 'steve' in message['text']
+    assert 'Paris' in message['text']
+
+
 def test_locate_friend(client, payload):
     payload['text'] = 'set Paris'
     r = client.post('/', data=payload)
