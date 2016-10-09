@@ -8,12 +8,17 @@ TOMORROW = datetime.date.today() + datetime.timedelta(days=1)
 
 
 @fixture(scope='function')
-def client():
+def client(request):
     app.config['DEBUG'] = True
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///:memory:"
     app.config['SLACK_TOKEN'] = 'gIkuvaNzQIHg97ATvDxqgjtO'
     db.create_all()
+
+    def finalize():
+        db.drop_all()
+    request.addfinalizer(finalize)
+
     return app.test_client()
 
 
@@ -46,7 +51,14 @@ def test_locate_friend(client, payload):
     assert r.status_code == 200
     message = json.loads(r.data.decode('utf-8'))
     assert 'Steve' in message['text']
-    assert 'Paris' in message['text'] 
+    assert 'Paris' in message['text']
+
+    payload['text'] = '@Steve'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+    message = json.loads(r.data.decode('utf-8'))
+    assert 'Steve' in message['text']
+    assert 'Paris' in message['text']
 
 
 def test_locate_no_friend(client, payload):

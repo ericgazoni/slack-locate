@@ -62,7 +62,7 @@ def parse_command(text):
         else:
             raise MalformedRequest(text)
     else:
-        username = text.strip()
+        username = text.strip().lstrip('@')
         return {'action': 'get', 'name': username}
 
 
