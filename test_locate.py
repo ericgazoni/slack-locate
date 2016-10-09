@@ -1,4 +1,4 @@
-from locate import app, db, parse_date, parse_command
+from application import app, db, parse_date, parse_command
 from pytest import fixture
 import datetime
 import json
@@ -44,8 +44,9 @@ def test_locate_friend(client, payload):
     payload['text'] = 'Steve'
     r = client.post('/', data=payload)
     assert r.status_code == 200
-    expect = {'text': 'Steve is in/at Paris today'}
-    assert json.loads(r.data.decode('utf-8')) == expect 
+    message = json.loads(r.data.decode('utf-8'))
+    assert 'Steve' in message['text']
+    assert 'Paris' in message['text'] 
 
 
 def test_parse_date():
