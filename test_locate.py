@@ -49,6 +49,15 @@ def test_locate_friend(client, payload):
     assert 'Paris' in message['text'] 
 
 
+def test_locate_no_friend(client, payload):
+    payload['text'] = 'Steve'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+    message = json.loads(r.data.decode('utf-8'))
+    assert 'Steve' in message['text']
+    assert 'Paris' not in message['text'] 
+
+
 def test_parse_date():
     assert parse_date('today') == TODAY
     assert parse_date('tomorrow') == TOMORROW

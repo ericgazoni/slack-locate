@@ -6,6 +6,7 @@ import humanfriendly
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api, reqparse
 from raven.contrib.flask import Sentry
+import sqlalchemy
 
 
 app = Flask(__name__)
@@ -131,7 +132,10 @@ class LocationService(Resource):
             s.commit()
             return {'text': 'Your position is now: {}'.format(location.place)}
         elif command['action'] == 'get':
-            target = User.query.filter_by(name=command['name']).one()
+            try:
+                target = User.query.filter_by(name=command['name']).one()
+            except sqlalchemy.orm.exc.NoResultFound:
+                return {'text': 'Sorry, no known location for {}'.format(command['name'])}
             place = target.location()
             return {'text': "{} is in/at {} today".format(target.name,
                                                           place.title())}
