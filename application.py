@@ -118,8 +118,10 @@ class LocationService(Resource):
         if command['action'] == 'set':
             user = User.query.get(args['user_id'])
             if not user:
-                team = Team(id=args['team_id'], domain=args['team_domain'])
-                s.add(team)
+                team = Team.query.get(args['team_id'])
+                if not team:
+                    team = Team(id=args['team_id'], domain=args['team_domain'])
+                    s.add(team)
                 user = User(id=args['user_id'],
                             name=args['user_name'].lower(),
                             team=team)

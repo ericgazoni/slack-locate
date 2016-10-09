@@ -41,6 +41,18 @@ def test_post_location_simple(client, payload):
     assert r.status_code == 200
 
 
+def test_post_location_two_friends(client, payload):
+    payload['text'] = 'set Paris'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+
+    payload.update({'user_id': 'U2147',
+                    'user_name': 'Bob',
+                    'text': 'set Brussels'})
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+
+
 def test_locate_friend(client, payload):
     payload['text'] = 'set Paris'
     r = client.post('/', data=payload)
