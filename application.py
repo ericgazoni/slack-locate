@@ -81,7 +81,7 @@ class User(db.Model):
         return '<User {} "{}">'.format(self.id, self.name)
 
     def location(self):
-        return self.locations[0].place
+        return self.locations[-1].place
 
 
 class Location(db.Model):

@@ -67,7 +67,24 @@ def test_locate_no_friend(client, payload):
     assert r.status_code == 200
     message = json.loads(r.data.decode('utf-8'))
     assert 'steve' in message['text']
-    assert 'Paris' not in message['text'] 
+    assert 'Paris' not in message['text']
+
+
+def test_locate_friend_ordered(client, payload):
+    payload['text'] = 'set Paris'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+
+    payload['text'] = 'set Brussels'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+
+    payload['text'] = 'Steve'
+    r = client.post('/', data=payload)
+    assert r.status_code == 200
+    message = json.loads(r.data.decode('utf-8'))
+    assert 'steve' in message['text']
+    assert 'Brussels' in message['text']
 
 
 def test_parse_date():
